@@ -6,6 +6,7 @@ import ConfirmDialog from '../components/ConfirmDialog';
 import AssignDoctor from '../components/AssignDoctor';
 import { getPatients, deletePatient, deleteDoctor, getDoctors } from '../api/Api';
 import { showSuccess, showError, getApiErrorMessage } from '../utils/toast';
+import { formatDate } from '../utils/date';
 
 function AdminDashboard() {
 
@@ -143,7 +144,7 @@ function AdminDashboard() {
                             {p.email || '—'} · {p.phone || '—'}
                           </p>
                           <p className="text-xs text-gray-400 mt-0.5">
-                            DOB: {p.date_of_birth ? String(p.date_of_birth).slice(0, 10) : '—'}
+                            DOB: {formatDate(p.date_of_birth)}
                           </p>
                         </div>
                         <span className="text-xs text-gray-500 shrink-0 text-right">
@@ -229,7 +230,7 @@ function AdminDashboard() {
                 {patients.map((p) => (
                   <tr key={p.id} className="border-b border-gray-50 hover:bg-gray-50">
                     <td className="py-2.5 pr-4 font-medium">{p.name}</td>
-                    <td className="py-2.5 pr-4 text-gray-400 text-xs">{p.date_of_birth}</td>
+                    <td className="py-2.5 pr-4 text-gray-400 text-xs">{formatDate(p.date_of_birth)}</td>
                     <td className="py-2.5 pr-4 text-xs text-gray-500">
                       {p.doctor_name ? (
                         <span className="text-blue-700">{p.doctor_name}</span>

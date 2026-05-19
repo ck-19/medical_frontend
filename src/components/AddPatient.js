@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { addPatient, updatePatient } from '../api/Api';
 import { showSuccess, showError, getApiErrorMessage } from '../utils/toast';
+import { formatDateForInput } from '../utils/date';
 
 const emptyForm = {
   name: '',
@@ -9,11 +10,6 @@ const emptyForm = {
   phone: '',
   notes: '',
   tags: '',
-};
-
-const formatDateForInput = (dob) => {
-  if (!dob) return '';
-  return String(dob).slice(0, 10);
 };
 
 const formatTagsForInput = (tags) => {

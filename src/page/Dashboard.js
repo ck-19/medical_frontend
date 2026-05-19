@@ -5,6 +5,7 @@ import PatientCard from '../components/PatientCard';
 import { logout } from '../utils/auth';
 import { getMyPatients } from '../api/Api';
 import { showError, getApiErrorMessage } from '../utils/toast';
+import { formatDateForInput } from '../utils/date';
 
 
 const formatTags = (tags) => {
@@ -38,7 +39,7 @@ function Dashboard() {
       const patientTags = formatTags(p.tags).map((t) => t.toLowerCase());
       const matchesTag = !tagQ || patientTags.some((t) => t.includes(tagQ));
 
-      const dob = p.date_of_birth ? String(p.date_of_birth).slice(0, 10) : '';
+      const dob = formatDateForInput(p.date_of_birth);
       const matchesDate = !date || dob === date;
 
       return matchesSearch && matchesTag && matchesDate;
