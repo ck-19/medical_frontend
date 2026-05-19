@@ -1,5 +1,10 @@
 import axios from 'axios';
 
+function authHeaders() {
+    const token = localStorage.getItem('token');
+    return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 async function loginusers (data){
     try {
         const result = await axios.post(
@@ -31,6 +36,20 @@ async function getPatients(){
     try {
         const result = await axios.get(
             `http://localhost:5000/api/v1/get-patients`
+        );
+        return result.data;
+    }
+    catch (error) {
+        console.log(error);
+        throw error;
+    }
+}
+
+async function getMyPatients(){
+    try {
+        const result = await axios.get(
+            `http://localhost:5000/api/v1/get-my-patients`,
+            { headers: authHeaders() }
         );
         return result.data;
     }
@@ -120,4 +139,4 @@ async function deleteDoctor(id){
         throw error;
     }
 }
-export {loginusers, addPatient, getPatients, deletePatient, updatePatient, assignDoctor, addDoctor, getDoctors, deleteDoctor};
+export {loginusers, addPatient, getPatients, getMyPatients, deletePatient, updatePatient, assignDoctor, addDoctor, getDoctors, deleteDoctor};

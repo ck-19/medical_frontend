@@ -24,7 +24,9 @@ function PatientCard({ patient, onRefresh }) {
         </div>
         <div>
           <p className="font-medium text-gray-800">{patient.name}</p>
-          <p className="text-xs text-gray-400">DOB: {patient.dob}</p>
+          <p className="text-xs text-gray-400">
+            DOB: {patient.date_of_birth ? String(patient.date_of_birth).slice(0, 10) : '—'}
+          </p>
         </div>
       </div>
 
@@ -66,9 +68,6 @@ function PatientCard({ patient, onRefresh }) {
           {uploading ? 'Uploading...' : '+ Upload media'}
           <input type="file" hidden accept="image/*,video/*"  />
         </label>
-        <button className="text-xs border border-gray-200 px-3 py-1 rounded-lg hover:bg-gray-50">
-          Edit
-        </button>
       </div>
     </div>
   );

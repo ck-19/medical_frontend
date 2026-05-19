@@ -11,6 +11,7 @@ const emptyForm = {
 function AddDoctorModal({ open, onClose, onSuccess }) {
   const [form, setForm] = useState(emptyForm);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [createdAccount, setCreatedAccount] = useState(null);
 
   if (!open) return null;
 
@@ -21,6 +22,7 @@ function AddDoctorModal({ open, onClose, onSuccess }) {
 
   const handleClose = () => {
     setForm(emptyForm);
+    setCreatedAccount(null);
     onClose();
   };
 
@@ -36,10 +38,13 @@ function AddDoctorModal({ open, onClose, onSuccess }) {
       if (result?.error) {
         showError(result.error);
       } else {
-        showSuccess(result?.message || 'Doctor added successfully');
+        setCreatedAccount({
+          email: form.email.trim(),
+          password: result.temporaryPassword,
+        });
+        showSuccess('Doctor added. Share the login password with them.');
         onSuccess?.();
         setForm(emptyForm);
-        onClose();
       }
     } catch (err) {
       showError(getApiErrorMessage(err, 'Failed to add doctor'));
@@ -59,6 +64,27 @@ function AddDoctorModal({ open, onClose, onSuccess }) {
           </button>
         </div>
 
+        {createdAccount && (
+          <div className="mx-6 mt-5 mb-5 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm">
+            <p className="font-medium text-green-800 mb-2">Login credentials created</p>
+            <p className="text-green-900">
+              <span className="text-green-700">Email:</span> {createdAccount.email}
+            </p>
+            <p className="text-green-900 mt-1">
+              <span className="text-green-700">Password:</span>{' '}
+              <span className="font-mono font-medium">{createdAccount.password}</span>
+            </p>
+            <p className="text-xs text-green-700 mt-2">The doctor can sign in with these credentials.</p>
+            <button
+              type="button"
+              onClick={handleClose}
+              className="mt-3 w-full bg-green-700 text-white py-2 rounded-lg text-sm font-medium hover:bg-green-800">
+              Done
+            </button>
+          </div>
+        )}
+
+        {!createdAccount && (
         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
           <div>
             <label className="text-sm text-gray-500 block mb-1">Name *</label>
@@ -107,6 +133,7 @@ function AddDoctorModal({ open, onClose, onSuccess }) {
             </button>
           </div>
         </form>
+        )}
       </div>
     </div>
   );

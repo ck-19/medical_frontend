@@ -1,4 +1,5 @@
-import { useState, useEffect} from 'react';
+import { useState, useEffect } from 'react';
+import AppLayout from '../components/layout/AppLayout';
 import AddPatient from '../components/AddPatient';
 import AddDoctor from '../components/AddDoctor';
 import ConfirmDialog from '../components/ConfirmDialog';
@@ -7,29 +8,32 @@ import { getPatients, deletePatient, deleteDoctor, getDoctors } from '../api/Api
 import { showSuccess, showError, getApiErrorMessage } from '../utils/toast';
 
 function AdminDashboard() {
-  const [patients, setPatients] = useState([]);
-  const [doctors, setDoctors] = useState([]);
-  const [activeTab, setActiveTab] = useState('overview');
-  const [showAddPatient, setShowAddPatient] = useState(false);
-  const [editingPatient, setEditingPatient] = useState(null);
-  const [showAddDoctor, setShowAddDoctor] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(null);
-  const [assigningPatient, setAssigningPatient] = useState(null);
+
+  const [patients,setPatients]= useState([]);
+  const [doctors,setDoctors]= useState([]);
+  const [activeTab,setActiveTab]= useState('overview');
+  const [showAddPatient,setShowAddPatient]= useState(false);
+  const [editingPatient,setEditingPatient] = useState(null);
+  const [showAddDoctor,setShowAddDoctor]= useState(false);
+  const [isDeleting,setIsDeleting]= useState(false);
+  const [confirmDelete,setConfirmDelete]= useState(null);
+  const [assigningPatient,setAssigningPatient]= useState(null);
+
+ 
+  const sidebarItems = [
+    { key: 'overview', label: 'Overview' },
+    { key: 'patients', label: 'Patients' },
+    { key: 'doctors',  label: 'Doctors' },
+  ];
+
+ 
   const FetchData = async () => {
     try {
-      const API = await getPatients();
-      console.log(API?.rows);
-      const allPatients = API?.rows || [];
-      setPatients(allPatients);
-
-      const API1 = await getDoctors();
-      console.log(API1);
-      const allDoctors = API1?.rows || [];
-      setDoctors(allDoctors);
-
+      const [pRes, dRes] = await Promise.all([getPatients(), getDoctors()]);
+      setPatients(pRes?.rows ?? []);
+      setDoctors(dRes?.rows  ?? []);
     } catch (err) {
-      console.error("Error fetching patients data:", err);
+      console.error('Error fetching data:', err);
     }
   };
 
@@ -37,6 +41,7 @@ function AdminDashboard() {
     FetchData();
   }, []);
 
+  
   const DeletePatient = async (id) => {
     try {
       setIsDeleting(true);
@@ -44,7 +49,7 @@ function AdminDashboard() {
       if (result?.error) {
         showError(result.error);
       } else {
-        showSuccess(result?.message || 'Patient deleted successfully');
+        showSuccess(result?.message ?? 'Patient deleted successfully');
         FetchData();
       }
     } catch (err) {
@@ -61,7 +66,7 @@ function AdminDashboard() {
       if (result?.error) {
         showError(result.error);
       } else {
-        showSuccess(result?.message || 'Doctor deleted successfully');
+        showSuccess(result?.message ?? 'Doctor deleted successfully');
         FetchData();
       }
     } catch (err) {
@@ -71,6 +76,7 @@ function AdminDashboard() {
     }
   };
 
+  
   const closePatientModal = () => {
     setShowAddPatient(false);
     setEditingPatient(null);
@@ -87,56 +93,99 @@ function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <>
+      <AppLayout
+        role="admin"
+        sidebarItems={sidebarItems}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}>
 
-      {/* Navbar */}
-      <nav className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
-        <span className="font-medium text-gray-800">MedDash</span>
-        <div className="flex items-center gap-3">
-          <span className="text-xs bg-red-50 text-red-700 border border-red-200 rounded-full px-3 py-1">Admin</span>
-          <div className="w-8 h-8 rounded-full bg-red-50 text-red-700 text-sm font-medium flex items-center justify-center">AD</div>
-          <button className="text-sm text-gray-500 hover:text-gray-800">Logout</button>
-        </div>
-      </nav>
-
-      <div className="flex">
-
-        {/* Sidebar */}
-        <div className="w-44 bg-white border-r border-gray-200 min-h-screen pt-4">
-          {[
-            { key: 'overview', icon: 'layout-dashboard', label: 'Overview' },
-            { key: 'patients', icon: 'users', label: 'Patients' },
-            { key: 'doctors', icon: 'stethoscope', label: 'Doctors' },
-          ].map(item => (
-            <button key={item.key}
-              onClick={() => setActiveTab(item.key)}
-              className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm text-left border-l-2 transition-colors
-                ${activeTab === item.key
-                  ? 'border-blue-600 bg-gray-50 text-gray-800 font-medium'
-                  : 'border-transparent text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}>
-              {item.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Main content */}
-        <div className="flex-1 p-6">
-
-          {/* Stats */}
-          <div className="grid grid-cols-4 gap-3 mb-6">
-            {[
-              { label: 'Total patients', value: patients.length, },
-              { label: 'Doctors', value: doctors.length, sub: 'All active' },
-            ].map(s => (
-              <div key={s.label} className="bg-white border border-gray-200 rounded-xl p-4">
-                <p className="text-xs text-gray-400 mb-1">{s.label}</p>
-                <p className="text-2xl font-medium">{s.value}</p>
-                <p className="text-xs text-gray-400 mt-1">{s.sub}</p>
+        {activeTab === 'overview' && (
+          <>
+            <h1 className="text-lg font-medium text-gray-800 mb-4">Overview</h1>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+              {[
+                {
+                  label: 'Total patients',
+                  value: patients.length,
+                  sub: `${patients.filter((p) => p.doctor_id).length} assigned`,
+                },
+                { label: 'Doctors', value: doctors.length, sub: 'All active' },
+              ].map((s) => (
+                <div key={s.label} className="bg-white border border-gray-200 rounded-xl p-4">
+                  <p className="text-xs text-gray-400 mb-1">{s.label}</p>
+                  <p className="text-2xl font-medium">{s.value}</p>
+                  <p className="text-xs text-gray-400 mt-1">{s.sub}</p>
+                </div>
+              ))}
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Recent patients card */}
+              <div className="bg-white border border-gray-200 rounded-xl p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-sm font-medium">Recent patients</h2>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('patients')}
+                    className="text-xs text-blue-600 hover:text-blue-800">
+                    View all
+                  </button>
+                </div>
+                {patients.length === 0 ? (
+                  <p className="text-xs text-gray-400">No patients yet.</p>
+                ) : (
+                  <ul className="divide-y divide-gray-50">
+                    {patients.slice(0, 5).map((p) => (
+                      <li key={p.id} className="py-2.5 flex justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-gray-800">{p.name}</p>
+                          <p className="text-xs text-gray-400 truncate">
+                            {p.email || '—'} · {p.phone || '—'}
+                          </p>
+                          <p className="text-xs text-gray-400 mt-0.5">
+                            DOB: {p.date_of_birth ? String(p.date_of_birth).slice(0, 10) : '—'}
+                          </p>
+                        </div>
+                        <span className="text-xs text-gray-500 shrink-0 text-right">
+                          {p.doctor_name || 'Unassigned'}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
-            ))}
-          </div>
 
-          {/* Patients table */}
+              {/* Doctors card */}
+              <div className="bg-white border border-gray-200 rounded-xl p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-sm font-medium">Doctors</h2>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('doctors')}
+                    className="text-xs text-blue-600 hover:text-blue-800">
+                    View all
+                  </button>
+                </div>
+                {doctors.length === 0 ? (
+                  <p className="text-xs text-gray-400">No doctors yet.</p>
+                ) : (
+                  <ul className="divide-y divide-gray-50">
+                    {doctors.slice(0, 5).map((d) => (
+                      <li key={d.id} className="py-2.5">
+                        <p className="text-sm font-medium text-gray-800">{d.name}</p>
+                        <p className="text-xs text-gray-400">{d.email}</p>
+                        <p className="text-xs text-blue-700 mt-0.5">{d.specialization}</p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ── Patients ── */}
+        {activeTab === 'patients' && (
           <div className="bg-white border border-gray-200 rounded-xl p-5 mb-4">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-medium">All patients</h2>
@@ -151,11 +200,19 @@ function AdminDashboard() {
               </button>
             </div>
             <div className="flex gap-2 mb-4">
-              <input className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Search by name..." />
-              <input className="w-28 border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none" placeholder="Tag..." />
+              <input
+                className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Search by name..."
+              />
+              <input
+                className="w-28 border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none"
+                placeholder="Tag..."
+              />
               <select className="border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none">
                 <option>All doctors</option>
-                {doctors.map(d => <option key={d.id}>{d.name}</option>)}
+                {doctors.map((d) => (
+                  <option key={d.id}>{d.name}</option>
+                ))}
               </select>
             </div>
             <table className="w-full text-sm">
@@ -169,7 +226,7 @@ function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {patients.map(p => (
+                {patients.map((p) => (
                   <tr key={p.id} className="border-b border-gray-50 hover:bg-gray-50">
                     <td className="py-2.5 pr-4 font-medium">{p.name}</td>
                     <td className="py-2.5 pr-4 text-gray-400 text-xs">{p.date_of_birth}</td>
@@ -182,8 +239,10 @@ function AdminDashboard() {
                     </td>
                     <td className="py-2.5 pr-4">
                       <div className="flex flex-wrap gap-1">
-                        {p.tags?.map(t => (
-                          <span key={t} className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">{t}</span>
+                        {p.tags?.map((t) => (
+                          <span key={t} className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">
+                            {t}
+                          </span>
                         ))}
                       </div>
                     </td>
@@ -215,8 +274,10 @@ function AdminDashboard() {
               </tbody>
             </table>
           </div>
+        )}
 
-          {/* Doctors table */}
+        {/* ── Doctors ── */}
+        {activeTab === 'doctors' && (
           <div className="bg-white border border-gray-200 rounded-xl p-5">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-medium">Doctors</h2>
@@ -232,21 +293,27 @@ function AdminDashboard() {
                 <tr className="border-b border-gray-100">
                   <th className="text-left text-xs font-medium text-gray-400 pb-2 pr-4">Name</th>
                   <th className="text-left text-xs font-medium text-gray-400 pb-2 pr-4">Email</th>
-                  <th className="text-left text-xs font-medium text-gray-400 pb-2 pr-4">Specialization </th>
+                  <th className="text-left text-xs font-medium text-gray-400 pb-2 pr-4">Specialization</th>
                   <th className="text-left text-xs font-medium text-gray-400 pb-2">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {doctors.map(d => (
+                {doctors.map((d) => (
                   <tr key={d.id} className="border-b border-gray-50 hover:bg-gray-50">
                     <td className="py-2.5 pr-4 font-medium">{d.name}</td>
                     <td className="py-2.5 pr-4 text-gray-400 text-xs">{d.email}</td>
                     <td className="py-2.5 pr-4">
-                      <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">{d.specialization}</span>
+                      <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">
+                        {d.specialization}
+                      </span>
                     </td>
                     <td className="py-2.5">
                       <div className="flex gap-2">
-                        <button className="text-xs border border-gray-200 px-2.5 py-1 rounded-lg hover:bg-gray-50">Edit</button>
+                        <button
+                          type="button"
+                          className="text-xs border border-gray-200 px-2.5 py-1 rounded-lg hover:bg-gray-50">
+                          Edit
+                        </button>
                         <button
                           type="button"
                           onClick={() => setConfirmDelete({ type: 'doctor', id: d.id, name: d.name })}
@@ -261,16 +328,18 @@ function AdminDashboard() {
               </tbody>
             </table>
           </div>
+        )}
 
-        </div>
-      </div>
+      </AppLayout>
 
+      {/* ── Modals ── */}
       <AddPatient
         open={showAddPatient || !!editingPatient}
         patient={editingPatient}
         onClose={closePatientModal}
         onSuccess={FetchData}
       />
+
       <AddDoctor
         open={showAddDoctor}
         onClose={() => setShowAddDoctor(false)}
@@ -298,7 +367,7 @@ function AdminDashboard() {
         onCancel={() => !isDeleting && setConfirmDelete(null)}
         isLoading={isDeleting}
       />
-    </div>
+    </>
   );
 }
 
